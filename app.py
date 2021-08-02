@@ -31,14 +31,16 @@ app.layout = html.Div(
         html.Div(id='intro', children=[html.H1(children='Tamu Salary Dashboard'),
         dcc.Markdown("""
         A dashboard with the historic self reported New Grad Texas A&M salaries. 
-        Testing Auto deploy change
+        
         Pulled from here [Salary Report](https://aggiesurveys.tamu.edu/public/Reports.aspx)
         
         To download the dataset:
 
         [csv file](https://datasets-baggies.s3.us-west-2.amazonaws.com/merged.csv)
 
-        [How to filter for you major](https://dash.plotly.com/datatable/filtering)      contact me at [reddit u/theSimpleTheorem](https://old.reddit.com/user/theSimpleTheorem)
+        [How to filter for you major.](https://dash.plotly.com/datatable/filtering)  Click on the next page on the table to see the graphs update with data. 
+        
+        - contact me at [reddit u/theSimpleTheorem](https://old.reddit.com/user/theSimpleTheorem)
         """, style={'margin': '20px'}),
         ], className='twelve columns',),
         html.Div(
