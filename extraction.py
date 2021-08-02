@@ -4,8 +4,6 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 
-SEMESTER = 'Fall'
-YEAR = '2019'
 
 def get_files(mypath):
     return [f for f in listdir(mypath) if isfile(join(mypath, f))][1:]
