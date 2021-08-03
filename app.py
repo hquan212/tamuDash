@@ -7,6 +7,7 @@ import dash_table.FormatTemplate as FormatTemplate
 import dash_table
 import plotly.express as px
 import pandas as pd
+import numpy as np
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -38,12 +39,15 @@ app.layout = html.Div(
 
         [csv file](https://datasets-baggies.s3.us-west-2.amazonaws.com/merged.csv)
 
-        [How to filter for you major.](https://dash.plotly.com/datatable/filtering)  Click on the next page on the table to see the graphs update with data. 
+        [How to filter for you major.](https://dash.plotly.com/datatable/filtering)  
+        
+        The data in the data table is displayed in the graphs below. The aggregate table feeds off of the main table.
         
         - contact me at [reddit u/theSimpleTheorem](https://old.reddit.com/user/theSimpleTheorem)
         """, style={'margin': '20px'}),
         ], className='twelve columns',),
-        html.Div(
+        html.Div([
+            html.H3('Data Table'),
             dash_table.DataTable(
                 id='table-paging-with-graph',
                 columns=[
@@ -65,8 +69,12 @@ app.layout = html.Div(
                 sort_action='custom',
                 sort_by=[{'column_id':'Major', 'direction': 'asc'}],
                 style_table={'height': '300px', 'overflowY': 'auto'}
-            ),
+            )],
             className='twelve columns'
+        ),
+        html.Div(
+            id='meta-stats',
+            className="twelve columns"
         ),
         html.Div(
             id='table-paging-with-scatter',
@@ -207,6 +215,35 @@ def update_graph(rows):
         figure=createMultiBarPlot(dff))
     )
 
-
+@app.callback(
+    Output('meta-stats', "children"),
+    Input('table-paging-with-graph', "data"))
+def update_graph(rows):
+    dff = pd.DataFrame(rows)
+    majors = dff['Major'].unique()
+    pivoted = pd.pivot_table(dff, values=['Median', 'Avg', 'NumSalariesReported'], index=['Degree'], aggfunc={ 'Median' : np.mean, 'Avg' : np.mean, 'NumSalariesReported' : sum}).reset_index()
+    pivoted.columns = ['Degree', 'Average of Avg', 'Average of Median', 'Total Number Salaries Reported']
+    count = dff['NumSalariesReported'].sum()
+    return html.Div(
+        [
+        html.H3(f"Total count of reported salaries: {count}", ),
+        html.P(f"For the following majors: {majors}"),
+        dash_table.DataTable(
+                id='agg-table',
+                data=pivoted.to_dict('records'),
+                columns= [{"name": "Degree", "id": "Degree", 'type':'text'}] + [
+                    {"name": i, "id": i, 'type': 'numeric', 'format' : FormatTemplate.money(0)} for i in ['Average of Avg', 'Average of Median']
+                ] + [{"name": i, "id": i, 'type':'numeric'} for i in ['Total Number Salaries Reported']],
+                style_cell={'textAlign': 'left', 'minWidth': '100px', 'width': '100px', 'maxWidth': '220px',
+                            'overflow': 'hidden', 'textOverflow': 'ellipsis',},
+                page_size=3,
+                style_header={ 'border': '2px solid black' },
+                fixed_rows={'headers': True},
+                sort_by=[{'column_id':'Major', 'direction': 'asc'}],
+                style_table={'height': '140px', 'overflowY': 'auto'}
+            ),
+        ]
+        ,
+    style={'margin-left' : '25px', 'margin-right' : '25px', 'margin-bottom' : '0px', 'margin-top' : '0'})
 if __name__ == '__main__':
     app.run_server(debug=True)
